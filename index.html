@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canton Institutional Tokenization Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#5025B8',
+                            dark: '#3D1C8C',
+                            light: '#D5C2FF',
+                            black: '#232329',
+                            gray: '#E4E4E4',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #F8F9FA; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+    </style>
+</head>
+<body class="text-brand-black">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const App = () => {
+            const [currentStep, setCurrentStep] = useState(0);
+            const [showTech, setShowTech] = useState(false);
+            const [isProcessing, setIsProcessing] = useState(false);
+            const [completedSteps, setCompletedSteps] = useState([]);
+
+            const steps = [
+                {
+                    title: "1. Immobilization & Definition",
+                    description: "Anchor a Real World Asset (RWA) to the ledger by creating a Digital Twin instrument.",
+                    role: "Asset Issuer (e.g., Goldman Sachs)",
+                    icon: "fa-solid fa-server",
+                    daml: `data InstrumentKey = InstrumentKey with\n  depository : Party -- The Custodian (e.g. DTC)\n  issuer : Party     -- The Bank\n  id : Text          -- CUSIP or ISIN\n  version : Text`,
+                    details: "Before minting, the issuer must prove they have custody of the underlying asset (e.g. locked in a DTC vault). The Daml Instrument contract acts as the 'Blueprint' for all future holdings."
+                },
+                {
+                    title: "2. The Prepare Phase",
+                    description: "The dApp requests a new minting transaction via the Canton Gateway.",
+                    role: "Tradeweb / dApp Layer",
+                    icon: "fa-solid fa-bolt",
+                    json: {
+                        method: "prepareExecute",
+                        params: {
+                            workflowId: "MINT_UST_001",
+                            command: {
+                                templateId: "CIP56:Holding",
+                                choice: "Mint",
+                                args: { amount: "100000000.00", instrument: "UST_2026_01" }
+                            }
+                        }
+                    },
+                    daml: `choice PrepareMint : (ContractId Holding)\n  with \n    amount : Decimal\n  controller issuer`,
+                    details: "Using CIP-0103, the dApp doesn't sign anything. It 'prepares' a transaction payload and sends it to the Canton Gateway. This decouples the keys from the application."
+                },
+                {
+                    title: "3. Institutional Governance",
+                    description: "Blockdaemon IV Gateway Signer decodes and validates the transaction against policy.",
+                    role: "Blockdaemon IV / Policy Engine",
+                    icon: "fa-solid fa-shield-halved",
+                    daml: `-- Internal Policy Engine Logic\nif (tx.amount > daily_limit) \n  then reject("Limit Exceeded")\n  else sign_with_mpc(vault_id)`,
+                    details: "The Gateway Signer prevents 'Blind Signing'. It decodes the Daml call so the MPC Vault can see the exact asset, amount, and counterparty before signing. No opaque blobs."
+                },
+                {
+                    title: "4. Atomic Minting (UTXO)",
+                    description: "The transaction is committed to the ledger, creating a discrete CIP-56 Holding.",
+                    role: "Canton Validator",
+                    icon: "fa-solid fa-file-contract",
+                    daml: `contract Holding with\n  instrument : InstrumentKey\n  account : AccountKey\n  amount : Decimal\n  observers : Set Party -- Regulatory Visibility`,
+                    details: "The token is now a UTXO. Unlike ERC-20, it's not a balance; it's a discrete contract object. Privacy is built-in: only the issuer and holder (and observers) know this contract exists."
+                },
+                {
+                    title: "5. Compliant Transfer",
+                    description: "Atomic swap or transfer with embedded compliance oracle checks.",
+                    role: "Network / Oracle",
+                    icon: "fa-solid fa-arrow-right",
+                    daml: `choice Transfer : ContractId Holding\n  with newOwner : AccountKey\n  controller owner\n  do\n    checkCompliance(newOwner) -- Oracle Call\n    create this with account = newOwner`,
+                    details: "Transferring is 'Offer-Accept'. The receiver must explicitly accept the asset. If an Oracle (e.g. Elliptic) flags the receiver, the Daml logic halts the transaction instantly."
+                }
+            ];
+
+            const handleNext = () => {
+                setIsProcessing(true);
+                setTimeout(() => {
+                    setCompletedSteps([...completedSteps, currentStep]);
+                    setIsProcessing(false);
+                    if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1);
+                }, 1200);
+            };
+
+            const resetDemo = () => {
+                setCurrentStep(0);
+                setCompletedSteps([]);
+                setShowTech(false);
+            };
+
+            return (
+                <div className="min-h-screen p-4 md:p-8">
+                    <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-3xl font-bold text-brand-black flex items-center gap-3">
+                                <i className="fa-solid fa-server text-brand-primary" />
+                                Canton Institutional Tokenization Demo
+                            </h1>
+                            <p className="text-slate-500 mt-1">Institutional RWA lifecycle powered by Blockdaemon IV & Canton Gateway</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => setShowTech(!showTech)}
+                                className="flex items-center gap-2 px-4 py-2 border border-brand-gray rounded-lg bg-white hover:bg-slate-50 transition-colors shadow-sm text-sm font-medium"
+                            >
+                                <i className="fa-solid fa-terminal text-brand-primary" />
+                                {showTech ? "Hide Tech Details" : "Show Tech Details"}
+                            </button>
+                            <button onClick={resetDemo} className="px-4 py-2 text-slate-500 hover:text-brand-black text-sm font-medium">Reset</button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* Sidebar */}
+                        <div className="lg:col-span-4 space-y-3">
+                            {steps.map((step, idx) => (
+                                <div 
+                                    key={idx}
+                                    onClick={() => idx <= completedSteps.length && setCurrentStep(idx)}
+                                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                                        currentStep === idx 
+                                            ? "border-brand-primary bg-brand-light/20 shadow-md" 
+                                            : completedSteps.includes(idx)
+                                                ? "border-brand-gray bg-white"
+                                                : "border-transparent bg-white opacity-50"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-lg ${currentStep === idx ? "bg-brand-primary text-white" : "bg-brand-gray text-brand-black"}`}>
+                                            {completedSteps.includes(idx) ? <i className="fa-solid fa-circle-check" /> : <i className={step.icon} />}
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] font-bold uppercase tracking-widest text-brand-primary/60">Step {idx + 1}</div>
+                                            <div className="font-bold text-brand-black leading-tight">{step.title}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                            <div className="mt-6 p-6 bg-brand-black rounded-2xl text-white shadow-xl border-t-4 border-brand-primary">
+                                <h4 className="flex items-center gap-2 font-bold mb-4 text-brand-light text-sm uppercase tracking-wider">
+                                    <i className="fa-solid fa-key" />
+                                    Infrastructure
+                                </h4>
+                                <div className="space-y-3 text-xs">
+                                    <div className="flex justify-between border-b border-white/10 pb-2">
+                                        <span className="text-brand-gray">Wallet API</span>
+                                        <span className="font-mono text-brand-light">CIP-0103</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-white/10 pb-2">
+                                        <span className="text-brand-gray">Token Interface</span>
+                                        <span className="font-mono text-brand-light">CIP-56</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-brand-gray">Policy Engine</span>
+                                        <span className="text-brand-light">Blockdaemon IV</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main Interaction Area */}
+                        <div className="lg:col-span-8 space-y-6">
+                            <div className="bg-white rounded-2xl border border-brand-gray shadow-xl overflow-hidden min-h-[550px] flex flex-col">
+                                <div className="p-8 flex-1">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <span className="px-3 py-1 bg-brand-light/30 text-brand-dark rounded-md text-[10px] font-bold uppercase tracking-widest border border-brand-light">
+                                            Role: {steps[currentStep].role}
+                                        </span>
+                                        {isProcessing && <span className="text-xs text-brand-primary animate-pulse font-bold">EXECUTING ON-CHAIN...</span>}
+                                    </div>
+
+                                    <h2 className="text-2xl font-bold text-brand-black mb-3">{steps[currentStep].title}</h2>
+                                    <p className="text-slate-600 mb-8 leading-relaxed">{steps[currentStep].description}</p>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                                        <div className="p-5 bg-brand-light/10 rounded-xl border border-brand-light">
+                                            <h4 className="text-xs font-bold text-brand-dark uppercase mb-2 flex items-center gap-2">
+                                                <i className="fa-solid fa-eye" />
+                                                Business Intent
+                                            </h4>
+                                            <p className="text-sm text-brand-black leading-snug">{steps[currentStep].details}</p>
+                                        </div>
+                                        <div className="p-5 bg-brand-black rounded-xl text-brand-light font-mono text-[10px]">
+                                            <div className="flex items-center gap-2 mb-2 text-white/50 uppercase tracking-tighter">
+                                                <i className="fa-solid fa-terminal" />
+                                                Node Status
+                                            </div>
+                                            <div className="space-y-1 text-white">
+                                                <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-green-400"></div> Canton Node: 200 OK</div>
+                                                <div className="flex items-center gap-2"><div className={`w-1.5 h-1.5 rounded-full ${currentStep >= 2 ? 'bg-green-400' : 'bg-white/20'}`}></div> Gateway: {currentStep >= 2 ? 'CONNECTED' : 'STANDBY'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {showTech && (
+                                        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                                                {steps[currentStep].json ? "CIP-0103 Prepared Request" : "Daml Contract Logic"}
+                                            </h4>
+                                            <div className="bg-brand-black p-4 rounded-xl border border-brand-primary/30 max-h-48 overflow-y-auto">
+                                                <pre className="text-xs text-brand-light font-mono leading-relaxed">
+                                                    {steps[currentStep].json ? JSON.stringify(steps[currentStep].json, null, 2) : steps[currentStep].daml}
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="p-6 bg-slate-50 border-t border-brand-gray flex justify-between items-center">
+                                    <div className="flex gap-1.5">
+                                        {steps.map((_, i) => (
+                                            <div key={i} className={`h-1.5 rounded-full transition-all ${i === currentStep ? 'w-8 bg-brand-primary' : i < completedSteps.length ? 'w-4 bg-brand-primary/40' : 'w-4 bg-brand-gray'}`}></div>
+                                        ))}
+                                    </div>
+                                    <button 
+                                        onClick={handleNext}
+                                        disabled={isProcessing || (currentStep === steps.length - 1 && completedSteps.includes(4))}
+                                        className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all flex items-center gap-2 ${isProcessing ? 'bg-brand-gray' : 'bg-brand-primary hover:bg-brand-dark active:scale-95'}`}
+                                    >
+                                        {isProcessing ? "Processing..." : currentStep === steps.length - 1 ? "Complete Demo" : "Next Step"}
+                                        {!isProcessing && <i className="fa-solid fa-arrow-right" />}
+                                    </button>
+                                    </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                    <h5 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                        <i className="fa-solid fa-lock w-4 h-4 text-brand-primary" />
+                                        Policy-Driven Signing
+                                    </h5>
+                                    <p className="text-xs text-slate-500 leading-relaxed">Blockdaemon IV ensures no blind signing by decoding Daml transactions before they reach the MPC vault. Keys stay secure; policies stay enforced.</p>
+                                </div>
+                                <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                    <h5 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                        <i className="fa-solid fa-shield-halved w-4 h-4 text-brand-primary" />
+                                        Deterministic Compliance
+                                    </h5>
+                                    <p className="text-xs text-slate-500 leading-relaxed">Compliance is part of the code, not just a post-trade check. The CIP-56 standard guarantees atomic settlement: either everything is compliant, or nothing moves.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
