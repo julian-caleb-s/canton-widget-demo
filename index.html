@@ -30,6 +30,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #F8F9FA; }
         .font-mono { font-family: 'Fira Code', monospace; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="text-brand-black">
@@ -114,55 +116,56 @@
             };
 
             return (
-                <div className="min-h-screen p-4 md:p-8">
-                    <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="min-h-screen p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+                    <div className="mb-6 lg:mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-brand-black flex items-center gap-3">
+                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-brand-black flex items-center gap-2 sm:gap-3">
                                 <i className="fa-solid fa-server text-brand-primary" />
-                                Canton Institutional Tokenization Demo
+                                <span className="leading-tight">Canton Institutional Tokenization Demo</span>
                             </h1>
-                            <p className="text-slate-500 mt-1">Institutional RWA lifecycle powered by Blockdaemon IV & Canton Gateway</p>
+                            <p className="text-slate-500 text-xs sm:text-base mt-1">Institutional RWA lifecycle powered by Blockdaemon IV & Canton Gateway</p>
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex gap-2">
                             <button 
                                 onClick={() => setShowTech(!showTech)}
-                                className="flex items-center gap-2 px-4 py-2 border border-brand-gray rounded-lg bg-white hover:bg-slate-50 transition-colors shadow-sm text-sm font-medium"
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 border border-brand-gray rounded-lg bg-white hover:bg-slate-50 transition-colors shadow-sm text-[10px] sm:text-sm font-medium"
                             >
                                 <i className="fa-solid fa-terminal text-brand-primary" />
                                 {showTech ? "Hide Tech Details" : "Show Tech Details"}
                             </button>
-                            <button onClick={resetDemo} className="px-4 py-2 text-slate-500 hover:text-brand-black text-sm font-medium">Reset</button>
+                            <button onClick={resetDemo} className="px-3 py-2 text-slate-500 hover:text-brand-black text-[10px] sm:text-sm font-medium">Reset</button>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* Sidebar */}
-                        <div className="lg:col-span-4 space-y-3">
-                            {steps.map((step, idx) => (
-                                <div 
-                                    key={idx}
-                                    onClick={() => idx <= completedSteps.length && setCurrentStep(idx)}
-                                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                                        currentStep === idx 
-                                            ? "border-brand-primary bg-brand-light/20 shadow-md" 
-                                            : completedSteps.includes(idx)
-                                                ? "border-brand-gray bg-white"
-                                                : "border-transparent bg-white opacity-50"
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg ${currentStep === idx ? "bg-brand-primary text-white" : "bg-brand-gray text-brand-black"}`}>
-                                            {completedSteps.includes(idx) ? <i className="fa-solid fa-circle-check" /> : <i className={step.icon} />}
-                                        </div>
-                                        <div>
-                                            <div className="text-[10px] font-bold uppercase tracking-widest text-brand-primary/60">Step {idx + 1}</div>
-                                            <div className="font-bold text-brand-black leading-tight">{step.title}</div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+                        <div className="lg:col-span-4 flex flex-col gap-4">
+                            <div className="flex lg:flex-col gap-2 overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+                                {steps.map((step, idx) => (
+                                    <div 
+                                        key={idx}
+                                        onClick={() => idx <= completedSteps.length && setCurrentStep(idx)}
+                                        className={`flex-shrink-0 w-[180px] lg:w-full p-3 lg:p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                                            currentStep === idx 
+                                                ? "border-brand-primary bg-brand-light/20 shadow-md" 
+                                                : completedSteps.includes(idx)
+                                                    ? "border-brand-gray bg-white"
+                                                    : "border-transparent bg-white opacity-50"
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2 lg:gap-3">
+                                            <div className={`p-2 rounded-lg text-xs lg:text-base ${currentStep === idx ? "bg-brand-primary text-white" : "bg-brand-gray text-brand-black"}`}>
+                                                {completedSteps.includes(idx) ? <i className="fa-solid fa-circle-check" /> : <i className={step.icon} />}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="text-[8px] lg:text-[10px] font-bold uppercase tracking-widest text-brand-primary/60">Step {idx + 1}</div>
+                                                <div className="font-bold text-[10px] lg:text-sm text-brand-black leading-tight truncate lg:whitespace-normal">{step.title}</div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
 
-                            <div className="mt-6 p-6 bg-brand-black rounded-2xl text-white shadow-xl border-t-4 border-brand-primary">
+                            <div className="hidden lg:block p-6 bg-brand-black rounded-2xl text-white shadow-xl border-t-4 border-brand-primary">
                                 <h4 className="flex items-center gap-2 font-bold mb-4 text-brand-light text-sm uppercase tracking-wider">
                                     <i className="fa-solid fa-key" />
                                     Infrastructure
@@ -184,47 +187,46 @@
                             </div>
                         </div>
 
-                        {/* Main Interaction Area */}
-                        <div className="lg:col-span-8 space-y-6">
-                            <div className="bg-white rounded-2xl border border-brand-gray shadow-xl overflow-hidden min-h-[550px] flex flex-col">
-                                <div className="p-8 flex-1">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <span className="px-3 py-1 bg-brand-light/30 text-brand-dark rounded-md text-[10px] font-bold uppercase tracking-widest border border-brand-light">
+                        <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+                            <div className="bg-white rounded-2xl border border-brand-gray shadow-xl overflow-hidden min-h-[450px] lg:min-h-[550px] flex flex-col">
+                                <div className="p-5 sm:p-8 flex-1">
+                                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                                        <span className="px-2 py-1 bg-brand-light/30 text-brand-dark rounded-md text-[8px] sm:text-[10px] font-bold uppercase tracking-widest border border-brand-light">
                                             Role: {steps[currentStep].role}
                                         </span>
-                                        {isProcessing && <span className="text-xs text-brand-primary animate-pulse font-bold">EXECUTING ON-CHAIN...</span>}
+                                        {isProcessing && <span className="text-[8px] sm:text-xs text-brand-primary animate-pulse font-bold">EXECUTING ON-CHAIN...</span>}
                                     </div>
 
-                                    <h2 className="text-2xl font-bold text-brand-black mb-3">{steps[currentStep].title}</h2>
-                                    <p className="text-slate-600 mb-8 leading-relaxed">{steps[currentStep].description}</p>
+                                    <h2 className="text-lg sm:text-2xl font-bold text-brand-black mb-2 sm:mb-3 leading-tight">{steps[currentStep].title}</h2>
+                                    <p className="text-xs sm:text-base text-slate-600 mb-6 sm:mb-8 leading-relaxed">{steps[currentStep].description}</p>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                                        <div className="p-5 bg-brand-light/10 rounded-xl border border-brand-light">
-                                            <h4 className="text-xs font-bold text-brand-dark uppercase mb-2 flex items-center gap-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                                        <div className="p-4 sm:p-5 bg-brand-light/10 rounded-xl border border-brand-light">
+                                            <h4 className="text-[10px] font-bold text-brand-dark uppercase mb-2 flex items-center gap-2">
                                                 <i className="fa-solid fa-eye" />
                                                 Business Intent
                                             </h4>
-                                            <p className="text-sm text-brand-black leading-snug">{steps[currentStep].details}</p>
+                                            <p className="text-[11px] sm:text-sm text-brand-black leading-snug">{steps[currentStep].details}</p>
                                         </div>
-                                        <div className="p-5 bg-brand-black rounded-xl text-brand-light font-mono text-[10px]">
+                                        <div className="p-4 sm:p-5 bg-brand-black rounded-xl text-brand-light font-mono text-[9px] sm:text-[10px]">
                                             <div className="flex items-center gap-2 mb-2 text-white/50 uppercase tracking-tighter">
                                                 <i className="fa-solid fa-terminal" />
                                                 Node Status
                                             </div>
                                             <div className="space-y-1 text-white">
-                                                <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-green-400"></div> Canton Node: 200 OK</div>
-                                                <div className="flex items-center gap-2"><div className={`w-1.5 h-1.5 rounded-full ${currentStep >= 2 ? 'bg-green-400' : 'bg-white/20'}`}></div> Gateway: {currentStep >= 2 ? 'CONNECTED' : 'STANDBY'}</div>
+                                                <div className="flex items-center gap-2 truncate"><div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0"></div> Canton Node: 200 OK</div>
+                                                <div className="flex items-center gap-2 truncate"><div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${currentStep >= 2 ? 'bg-green-400' : 'bg-white/20'}`}></div> Gateway: {currentStep >= 2 ? 'CONNECTED' : 'STANDBY'}</div>
                                             </div>
                                         </div>
                                     </div>
 
                                     {showTech && (
                                         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                                            <h4 className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                                                 {steps[currentStep].json ? "CIP-0103 Prepared Request" : "Daml Contract Logic"}
                                             </h4>
-                                            <div className="bg-brand-black p-4 rounded-xl border border-brand-primary/30 max-h-48 overflow-y-auto">
-                                                <pre className="text-xs text-brand-light font-mono leading-relaxed">
+                                            <div className="bg-brand-black p-3 sm:p-4 rounded-xl border border-brand-primary/30 max-h-40 sm:max-h-48 overflow-y-auto">
+                                                <pre className="text-[9px] sm:text-xs text-brand-light font-mono leading-relaxed whitespace-pre-wrap">
                                                     {steps[currentStep].json ? JSON.stringify(steps[currentStep].json, null, 2) : steps[currentStep].daml}
                                                 </pre>
                                             </div>
@@ -232,7 +234,7 @@
                                     )}
                                 </div>
 
-                                <div className="p-6 bg-slate-50 border-t border-brand-gray flex justify-between items-center">
+                                <div className="p-5 sm:p-6 bg-slate-50 border-t border-brand-gray flex flex-col sm:flex-row justify-between items-center gap-4">
                                     <div className="flex gap-1.5">
                                         {steps.map((_, i) => (
                                             <div key={i} className={`h-1.5 rounded-full transition-all ${i === currentStep ? 'w-8 bg-brand-primary' : i < completedSteps.length ? 'w-4 bg-brand-primary/40' : 'w-4 bg-brand-gray'}`}></div>
@@ -241,28 +243,28 @@
                                     <button 
                                         onClick={handleNext}
                                         disabled={isProcessing || (currentStep === steps.length - 1 && completedSteps.includes(4))}
-                                        className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all flex items-center gap-2 ${isProcessing ? 'bg-brand-gray' : 'bg-brand-primary hover:bg-brand-dark active:scale-95'}`}
+                                        className={`w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-sm text-white shadow-lg transition-all flex items-center justify-center gap-2 ${isProcessing ? 'bg-brand-gray' : 'bg-brand-primary hover:bg-brand-dark active:scale-95'}`}
                                     >
                                         {isProcessing ? "Processing..." : currentStep === steps.length - 1 ? "Complete Demo" : "Next Step"}
                                         {!isProcessing && <i className="fa-solid fa-arrow-right" />}
                                     </button>
-                                    </div>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
-                                    <h5 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                <div className="p-4 sm:p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                    <h5 className="font-bold text-xs sm:text-sm text-slate-900 mb-2 flex items-center gap-2">
                                         <i className="fa-solid fa-lock w-4 h-4 text-brand-primary" />
                                         Policy-Driven Signing
                                     </h5>
-                                    <p className="text-xs text-slate-500 leading-relaxed">Blockdaemon IV ensures no blind signing by decoding Daml transactions before they reach the MPC vault. Keys stay secure; policies stay enforced.</p>
+                                    <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">Blockdaemon IV ensures no blind signing by decoding Daml transactions before they reach the MPC vault. Keys stay secure; policies stay enforced.</p>
                                 </div>
-                                <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
-                                    <h5 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                <div className="p-4 sm:p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                    <h5 className="font-bold text-xs sm:text-sm text-slate-900 mb-2 flex items-center gap-2">
                                         <i className="fa-solid fa-shield-halved w-4 h-4 text-brand-primary" />
                                         Deterministic Compliance
                                     </h5>
-                                    <p className="text-xs text-slate-500 leading-relaxed">Compliance is part of the code, not just a post-trade check. The CIP-56 standard guarantees atomic settlement: either everything is compliant, or nothing moves.</p>
+                                    <p className="text-[10px] sm:text-xs text-slate-500 leading-relaxed">Compliance is part of the code, not just a post-trade check. The CIP-56 standard guarantees atomic settlement: either everything is compliant, or nothing moves.</p>
                                 </div>
                             </div>
                         </div>
