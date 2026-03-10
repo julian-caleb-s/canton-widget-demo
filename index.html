@@ -48,8 +48,8 @@
 
             const steps = [
                 {
-                    title: "1. Immobilization & Definition",
-                    description: "Anchor a Real World Asset (RWA) to the ledger by creating a Digital Twin instrument.",
+                    title: "1. Registry & Definition",
+                    description: "Define the asset on the ledger by creating a Registry to manage the asset's lifecycle.",
                     role: "Asset Issuer (e.g., Goldman Sachs)",
                     icon: "fa-solid fa-server",
                     daml: `data InstrumentKey = InstrumentKey with\n  depository : Party -- The Custodian (e.g. DTC)\n  issuer : Party     -- The Bank\n  id : Text          -- CUSIP or ISIN\n  version : Text`,
@@ -57,7 +57,7 @@
                 },
                 {
                     title: "2. The Prepare Phase",
-                    description: "The dApp requests a new minting transaction via the Canton Gateway.",
+                    description: "The dApp requests a new minting operation via the Canton Gateway.",
                     role: "Tradeweb / dApp Layer",
                     icon: "fa-solid fa-bolt",
                     json: {
@@ -75,15 +75,15 @@
                     details: "Using CIP-0103, the dApp doesn't sign anything. It 'prepares' a transaction payload and sends it to the Canton Gateway. This decouples the keys from the application."
                 },
                 {
-                    title: "3. Institutional Governance",
-                    description: "Blockdaemon IV Gateway Signer decodes and validates the transaction against policy.",
+                    title: "3. Admin & Policy Hooks",
+                    description: "Blockdaemon IV Gateway Signer validates the transaction against embedded compliance hooks",
                     role: "Blockdaemon IV / Policy Engine",
                     icon: "fa-solid fa-shield-halved",
                     daml: `-- Internal Policy Engine Logic\nif (tx.amount > daily_limit) \n  then reject("Limit Exceeded")\n  else sign_with_mpc(vault_id)`,
                     details: "The Gateway Signer prevents 'Blind Signing'. It decodes the Daml call so the MPC Vault can see the exact asset, amount, and counterparty before signing. No opaque blobs."
                 },
                 {
-                    title: "4. Atomic Minting (UTXO)",
+                    title: "4. Holding Creation (UTXO)",
                     description: "The transaction is committed to the ledger, creating a discrete CIP-56 Holding.",
                     role: "Canton Validator",
                     icon: "fa-solid fa-file-contract",
